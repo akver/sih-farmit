@@ -1,0 +1,47 @@
+[build]
+  publish = "."
+
+# FIX: without these headers Netlify's default CDN caching can serve a
+# stale sw.js/manifest.json for a long time after you redeploy, which
+# means farmers' phones never see your update (classic PWA footgun).
+# index.html itself must also never be cached, since it's what registers
+# the (possibly-updated) service worker in the first place.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/icons/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# OPTIONAL — only needed if you deploy the nearby-resources proxy as a
+# Netlify Function instead of the Cloudflare Worker in
+# maps-proxy-worker.js. Netlify Functions use a different handler
+# signature (exports.handler, not the Workers fetch(request, env) style),
+# so maps-proxy-worker.js will NOT run unmodified as a Netlify Function —
+# see the note at NEARBY_PROXY_ENDPOINT in index.html.
+# [[redirects]]
+#   from = "/api/nearby-resources"
+#   to = "/.netlify/functions/nearby-resources"
+#   status = 200
+
+# OPTIONAL — same idea for the photo-analysis proxy in
+# photo-analysis-proxy-worker.js (see PHOTO_ANALYSIS_ENDPOINT in
+# index.html). Also needs rewriting for Netlify Functions' handler
+# signature if you go that route instead of Cloudflare Workers.
+# [[redirects]]
+#   from = "/api/photo-analysis"
+#   to = "/.netlify/functions/photo-analysis"
+#   status = 200
